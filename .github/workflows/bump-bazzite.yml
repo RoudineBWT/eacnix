@@ -1,0 +1,124 @@
+name: "⬆️ Bump Bazzite pins"
+
+# Weekly: compare the kernel of Bazzite's current stable images with the pins
+# in pkgs/bazzite/sources.nix. When a flavour moved, rewrite its pins (kernel,
+# akmods layers, kmod-nvidia version and, if that changed, NVIDIA's userspace
+# hashes), refresh the vendored kernel config, run the flake checks and, if
+# they pass, commit straight to the default branch. If they fail, a draft pull
+# request is opened instead. A flavour that can't be bumped automatically (akmods
+# images not published yet, a hash that can't be computed, a new kernel major)
+# becomes an issue with what's left to do.
+#
+# Needs: Settings → Actions → General → "Allow GitHub Actions to create and
+# approve pull requests" (for the failure fallback), and no branch protection
+# blocking pushes from github-actions on the default branch.
+
+on:
+  schedule:
+    - cron: "29 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: bump-bazzite
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Before the script: it calls `nix store prefetch-file` when NVIDIA's version changes.
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Look for a newer Bazzite kernel
+        id: bump
+        run: python3 scripts/bump_bazzite.py
+
+      - name: Open an issue for what needs a person
+        if: steps.bump.outputs.todo == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.bump.outputs.todo_title }}
+        run: |
+          gh label create bump --color FBCA04 --description "Vendor kernel bump needed" 2>/dev/null || true
+          n=$(gh issue list --state all --label bump --search "\"$TITLE\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then
+            echo "Issue #$n already covers this kernel."
+          else
+            gh issue create --title "$TITLE" --label bump --body-file bazzite-todo.md
+          fi
+
+      - name: Skip if that bump is already proposed
+        id: dup
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          if git ls-remote --exit-code --heads origin "${{ steps.bump.outputs.branch }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Branch ${{ steps.bump.outputs.branch }} already exists, nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Free disk space
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Refresh the vendored kernel config
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          nix build -L .#bazzite-kernel.vendored -o vendored
+          cp -L --no-preserve=mode vendored/* pkgs/bazzite/ogc/
+          rm vendored
+          nix build -L .#bazzite-lts-kernel.vendored -o vendored
+          cp -L --no-preserve=mode vendored/* pkgs/bazzite/ogc-lts/
+          rm vendored
+
+      - name: Enable KVM (for the VM tests)
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Flake checks
+        id: check
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        continue-on-error: true
+        run: nix flake check -L
+
+      - name: Commit the bump
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+          TITLE: ${{ steps.bump.outputs.title }}
+          CHECK: ${{ steps.check.outcome }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "eacnix pins bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A pkgs/bazzite
+          if [ "$CHECK" = "success" ]; then
+            # Checks passed: commit straight to the default branch.
+            git commit -m "$TITLE" -m "$(cat bump-summary.md)"
+            git pull --rebase origin "$BASE"
+            git push origin "HEAD:$BASE"
+          else
+            # Checks failed: don't break the default branch, open a draft PR instead.
+            git checkout -b "$BRANCH"
+            git commit -m "$TITLE"
+            git push origin "$BRANCH"
+            printf '\n**`nix flake check` failed** (see the workflow run). Opened as a draft.\n' >> bump-summary.md
+            gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file bump-summary.md --draft
+          fi

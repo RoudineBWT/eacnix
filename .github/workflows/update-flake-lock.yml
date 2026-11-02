@@ -1,0 +1,93 @@
+name: "🔒 Update flake.lock"
+
+# Weekly: `nix flake update` (nixpkgs, lanzaboote and what they pull in), run
+# the flake checks and, if they pass, commit flake.lock straight to the default
+# branch. If they fail, flake.lock is pushed to the branch bump/flake-lock and
+# a draft pull request is opened (or updated) instead.
+#
+# Needs: Settings → Actions → General → "Allow GitHub Actions to create and
+# approve pull requests" (for the failure fallback), and no branch protection
+# blocking pushes from github-actions on the default branch.
+
+on:
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-flake-lock
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Update flake.lock
+        id: update
+        run: |
+          nix flake update 2> update.log
+          cat update.log
+          if git diff --quiet flake.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Free disk space
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Enable KVM (for the VM tests)
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Flake checks
+        id: check
+        if: steps.update.outputs.changed == 'true'
+        continue-on-error: true
+        run: nix flake check -L
+
+      - name: Commit flake.lock
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK: ${{ steps.check.outcome }}
+          BASE: ${{ github.event.repository.default_branch }}
+          BRANCH: bump/flake-lock
+        run: |
+          git config user.name "eacnix pins bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flake.lock
+          title="flake.lock: update inputs"
+          if [ "$CHECK" = "success" ]; then
+            # Checks passed: commit straight to the default branch.
+            git commit -m "$title" -m "$(cat update.log)"
+            git pull --rebase origin "$BASE"
+            git push origin "HEAD:$BASE"
+          else
+            # Checks failed: don't break the default branch, open a draft PR instead.
+            git checkout -b "$BRANCH"
+            git commit -m "$title" -m "$(cat update.log)"
+            git push --force origin "$BRANCH"
+            if [ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
+              printf '%s\n\n**`nix flake check` failed** (see the workflow run). Opened as a draft.\n\n```\n%s\n```\n' \
+                "$title" "$(cat update.log)" > pr-body.md
+              gh pr create --base "$BASE" --head "$BRANCH" --title "$title" --body-file pr-body.md --draft
+            fi
+          fi

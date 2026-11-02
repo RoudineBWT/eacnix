@@ -2,13 +2,13 @@ name: "⬆️ Bump Fedora pins"
 
 # Weekly: look for a newer Fedora kernel/grub/shim (of the release pinned in
 # pkgs/fedora/sources.nix, stable repos only), rewrite the pins, refresh the
-# vendored kernel config, run the flake checks and open a pull request. The
-# merge stays manual: read the diff, it decides which signed boot chain the
-# EAC entry runs.
+# vendored kernel config, run the flake checks and, if they pass, commit
+# straight to the default branch. If they fail, nothing touches the default
+# branch: a draft pull request is opened instead.
 #
 # Needs: Settings → Actions → General → "Allow GitHub Actions to create and
-# approve pull requests". A PR opened with the default token does not trigger
-# other workflows, which is why the flake checks run inside this job.
+# approve pull requests" (for the failure fallback), and no branch protection
+# blocking pushes from github-actions on the default branch.
 
 on:
   schedule:
@@ -81,7 +81,7 @@ jobs:
         continue-on-error: true
         run: nix flake check -L
 
-      - name: Open the pull request
+      - name: Commit the bump
         if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -92,15 +92,17 @@ jobs:
         run: |
           git config user.name "eacnix pins bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
           git add -A pkgs/fedora
-          git commit -m "$TITLE"
-          git push origin "$BRANCH"
           if [ "$CHECK" = "success" ]; then
-            printf '\n`nix flake check` passed.\n' >> bump-summary.md
-            draft=""
+            # Checks passed: commit straight to the default branch.
+            git commit -m "$TITLE" -m "$(cat bump-summary.md)"
+            git pull --rebase origin "$BASE"
+            git push origin "HEAD:$BASE"
           else
+            # Checks failed: don't break the default branch, open a draft PR instead.
+            git checkout -b "$BRANCH"
+            git commit -m "$TITLE"
+            git push origin "$BRANCH"
             printf '\n**`nix flake check` failed** (see the workflow run). Opened as a draft.\n' >> bump-summary.md
-            draft="--draft"
+            gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file bump-summary.md --draft
           fi
-          gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file bump-summary.md $draft
