@@ -7,7 +7,7 @@ in
   release = "fc45";
 
   kernel = rec {
-    version = "7.2.11";
+    version = "7.2.14";
     release = "300.fc45";
     modDirVersion = "${version}-${release}.x86_64";
     # Vanilla source of the same upstream version. Userspace tools in
@@ -16,39 +16,39 @@ in
     # builds from this.
     upstream = {
       url = "https://cdn.kernel.org/pub/linux/kernel/v${builtins.head (builtins.splitVersion version)}.x/linux-${version}.tar.xz";
-      hash = "sha256-/Q/EefmDqMBTE/E+nDYzD+ZlHPclOWdIxA1c2T+h5qQ=";
+      hash = "sha256-uxuHHvlajeELP3t7rw4NdUq79iD4BLbK+GDyJqqXZH0=";
     };
     rpms = {
       core = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-core-${modDirVersion}.rpm";
-        hash = "sha256-q2glxtV9vuJXDrKxUGCE5RFAXYssOfvWbmJwKLqVlV4=";
+        hash = "sha256-WWYrkMA0KhxwKoiwiInDdlIe0OPWj7TDmhtlXas7Rus=";
       };
       modules-core = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-modules-core-${modDirVersion}.rpm";
-        hash = "sha256-uHs7H9mxWbDLInlO9+jE0x1HgFjWjlwN0IQh3SyXizY=";
+        hash = "sha256-NQqr9bPpgN+ghXNRz75pVD7f8UhHvWuwdE4ZBHp8zBw=";
       };
       modules = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-modules-${modDirVersion}.rpm";
-        hash = "sha256-MJ17DiZm8q8PbhJzeiLQPZ3TTj922bepN55mt0dzJg4=";
+        hash = "sha256-o7TRSTONDmY+yBbCOnm/vxWc+IkcKh/20Nxc9jz7+OE=";
       };
     };
   };
 
   grub = rec {
     version = "2.12";
-    release = "81.fc45";
+    release = "83.fc45";
     rpm = {
       url = "${koji}/grub2/${version}/${release}/x86_64/grub2-efi-x64-${version}-${release}.x86_64.rpm";
-      hash = "sha256-MNK3sowzjbOcunL4gRLe/NMrz/n18c5FT8FCA2hZnp0=";
+      hash = "sha256-wglogYbUAyN/R5tmaTH4d4z7OwcAqzDdmb9H85YbWuw=";
     };
   };
 
   shim = rec {
     version = "16.1";
-    release = "7";
+    release = "10";
     rpm = {
       url = "${koji}/shim/${version}/${release}/x86_64/shim-x64-${version}-${release}.x86_64.rpm";
-      hash = "sha256-ChGfNIjl2ifKVcGGTujhMa+l7PJ2iThboJuAXrAN1gg=";
+      hash = "sha256-UMqK0PCJOptp0leyMsw4/lctfyyBS8muxN9eSSgAzcc=";
     };
   };
 }
