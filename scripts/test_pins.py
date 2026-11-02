@@ -15,9 +15,8 @@ import bump_fedora  # noqa: E402
 import pinlib  # noqa: E402
 import watch_bazzite  # noqa: E402
 
-REPO = HERE.parent
-FEDORA = (REPO / "pkgs/fedora/sources.nix").read_text()
-BAZZITE = (REPO / "pkgs/bazzite/sources.nix").read_text()
+FEDORA = (HERE / "fixtures/fedora-sources.nix").read_text()
+BAZZITE = (HERE / "fixtures/bazzite-sources.nix").read_text()
 
 
 class Basics(unittest.TestCase):

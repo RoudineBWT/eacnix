@@ -219,7 +219,14 @@ def hide_systemd_boot_entries(args):
 
 
 def efibootmgr(*argv):
-    return subprocess.run(["efibootmgr", *argv], check=True, capture_output=True, text=True).stdout
+    try:
+        return subprocess.run(["efibootmgr", *argv], check=True, capture_output=True, text=True).stdout
+    except subprocess.CalledProcessError as e:
+        # Exit status 13 is EACCES: writing EFI variables needs root.
+        if os.geteuid() != 0:
+            sys.exit("eacnix-boot: efibootmgr needs root; rerun with sudo")
+        detail = (e.stderr or e.stdout or "").strip()
+        sys.exit(f"eacnix-boot: efibootmgr {' '.join(argv)} failed (status {e.returncode})" + (f": {detail}" if detail else ""))
 
 
 def find_entry(label):

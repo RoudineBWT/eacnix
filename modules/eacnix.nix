@@ -422,6 +422,10 @@ in
       '';
       eac-reboot = pkgs.writeShellScriptBin "eac-reboot" ''
         set -e
+        # Setting BootNext writes an EFI variable: root only.
+        if [ "$(id -u)" != 0 ]; then
+          exec /run/wrappers/bin/sudo "$0" "$@"
+        fi
         ${lib.getExe eacnix-boot} next --label ${lib.escapeShellArg cfg.boot.label}
         exec systemctl reboot
       '';
