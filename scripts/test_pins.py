@@ -11,9 +11,12 @@ from unittest import mock
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import bump_bazzite  # noqa: E402
 import bump_fedora  # noqa: E402
 import pinlib  # noqa: E402
 import watch_bazzite  # noqa: E402
+
+wb = watch_bazzite
 
 FEDORA = (HERE / "fixtures/fedora-sources.nix").read_text()
 BAZZITE = (HERE / "fixtures/bazzite-sources.nix").read_text()
@@ -175,6 +178,104 @@ class WatchBazziteFlow(unittest.TestCase):
     def test_kmod_name_regex(self):
         m = watch_bazzite.KMOD.search("kmod-nvidia-7.2.9-ogc3.1.fc44.x86_64-615.78.08-1.fc44.x86_64.rpm")
         self.assertEqual(m.group("nv"), "615.78.08")
+
+
+class BumpBazziteFlow(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.src = Path(self.tmp) / "sources.nix"
+        self.src.write_text(BAZZITE)
+        self.out = Path(self.tmp) / "github_output"
+        self.out.write_text("")
+        patcher = mock.patch.dict(os.environ, {"GITHUB_OUTPUT": str(self.out)})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.old_cwd = os.getcwd()
+        os.chdir(self.tmp)
+        self.addCleanup(os.chdir, self.old_cwd)
+        self.prefetched = []
+
+    def run_main(self, live, nv="615.78.08", layer=lambda repo, tag, tok: "cd" * 32, tarball=lambda v: f"sha256-{v}="):
+        labels = lambda repo, ref, tok: {"ostree.linux": live[repo], "org.opencontainers.image.created": "2026-11-01"}
+
+        def prefetch(url, unpack=False):
+            self.prefetched.append(url)
+            return "sha256-" + url.rsplit("/", 1)[-1][:8] + "="
+
+        with mock.patch.object(wb, "token", lambda repo: "t"), \
+             mock.patch.object(wb, "image_labels", labels), \
+             mock.patch.object(wb, "single_layer", layer), \
+             mock.patch.object(wb, "nvidia_version", lambda repo, d, tok: nv), \
+             mock.patch.object(wb, "kernel_tarball_sri", tarball), \
+             mock.patch.object(bump_bazzite, "nix_prefetch", prefetch), \
+             mock.patch.object(sys, "argv", ["bump", "--sources", str(self.src)]):
+            return bump_bazzite.main()
+
+    CURRENT = {"bazzite": "7.2.9-ogc3.1.fc44.x86_64", "bazzite-nvidia": "6.18.56-ogc1.1.fc44.x86_64"}
+
+    def test_current_changes_nothing(self):
+        self.assertEqual(self.run_main(self.CURRENT), 0)
+        self.assertEqual(self.src.read_text(), BAZZITE)
+        self.assertEqual(self.out.read_text().strip(), "changed=false\ntodo=false")
+
+    def test_never_downgrades(self):
+        self.run_main({**self.CURRENT, "bazzite": "7.2.8-ogc3.1.fc44.x86_64"})
+        self.assertEqual(self.src.read_text(), BAZZITE)
+
+    def test_same_nvidia_keeps_userspace_hashes(self):
+        self.run_main({**self.CURRENT, "bazzite": "7.3.0-ogc4.1.fc44.x86_64"})
+        new = self.src.read_text()
+        self.assertEqual(pinlib.get_field(new, ["ogc", "kernel"], "version"), "7.3.0")
+        self.assertEqual(pinlib.get_field(new, ["ogc", "kernel"], "release"), "ogc4.1.fc44")
+        self.assertEqual(pinlib.get_field(new, ["ogc", "kernel", "upstream"], "hash"), "sha256-7.3.0=")
+        self.assertEqual(pinlib.get_layer(new, ["ogc", "kernel"]), ("akmods", "cd" * 32))
+        self.assertEqual(pinlib.get_layer(new, ["ogc", "nvidia"]), ("akmods-nvidia-open", "cd" * 32))
+        self.assertEqual(self.prefetched, [])
+        # the other flavour is untouched
+        self.assertEqual(pinlib.get_field(new, ["ogc-lts", "kernel"], "version"), "6.18.56")
+        self.assertEqual(pinlib.get_layer(new, ["ogc-lts", "kernel"]), pinlib.get_layer(BAZZITE, ["ogc-lts", "kernel"]))
+        self.assertEqual(len(new.splitlines()), len(BAZZITE.splitlines()))
+        self.assertIn("ogc 7.3.0-ogc4.1.fc44", self.out.read_text())
+        self.assertIn("branch=bump/bazzite-ogc-7.3.0-ogc4.1.fc44", self.out.read_text())
+        self.assertIn("7.3.0-ogc4.1.fc44", (Path(self.tmp) / "bump-summary.md").read_text())
+
+    def test_new_nvidia_recomputes_userspace_hashes(self):
+        self.run_main({**self.CURRENT, "bazzite": "7.3.0-ogc4.1.fc44.x86_64"}, nv="615.99.01")
+        new = self.src.read_text()
+        self.assertEqual(pinlib.get_field(new, ["ogc", "nvidia"], "version"), "615.99.01")
+        self.assertEqual(len(self.prefetched), 3)
+        self.assertTrue(self.prefetched[0].endswith("NVIDIA-Linux-x86_64-615.99.01.run"))
+        for field in ("sha256_64bit", "settingsSha256", "persistencedSha256"):
+            self.assertNotEqual(pinlib.get_field(new, ["ogc", "nvidia", "userspace"], field),
+                                pinlib.get_field(BAZZITE, ["ogc", "nvidia", "userspace"], field))
+        self.assertEqual(len(new.splitlines()), len(BAZZITE.splitlines()))
+
+    def test_unpublished_akmods_goes_to_todo(self):
+        self.run_main({**self.CURRENT, "bazzite": "7.3.0-ogc4.1.fc44.x86_64"}, layer=lambda repo, tag, tok: None)
+        self.assertEqual(self.src.read_text(), BAZZITE)
+        self.assertIn("isn't published yet", (Path(self.tmp) / "bazzite-todo.md").read_text())
+        self.assertIn("changed=false\ntodo=true\ntodo_title=bazzite: manual bump needed (ogc 7.3.0-ogc4.1.fc44)", self.out.read_text())
+
+    def test_major_kernel_change_goes_to_todo(self):
+        self.run_main({**self.CURRENT, "bazzite": "8.0.1-ogc1.1.fc44.x86_64"})
+        self.assertEqual(self.src.read_text(), BAZZITE)
+        self.assertIn("major version changed", (Path(self.tmp) / "bazzite-todo.md").read_text())
+
+    def test_failed_prefetch_goes_to_todo(self):
+        def boom(url, unpack=False):
+            raise FileNotFoundError("nix")
+        with mock.patch.object(bump_bazzite, "nix_prefetch", boom):
+            labels = lambda repo, ref, tok: {"ostree.linux": {**self.CURRENT, "bazzite": "7.3.0-ogc4.1.fc44.x86_64"}[repo]}
+            with mock.patch.object(wb, "token", lambda repo: "t"), \
+                 mock.patch.object(wb, "image_labels", labels), \
+                 mock.patch.object(wb, "single_layer", lambda *a: "cd" * 32), \
+                 mock.patch.object(wb, "nvidia_version", lambda *a: "615.99.01"), \
+                 mock.patch.object(wb, "kernel_tarball_sri", lambda v: "sha256-x="), \
+                 mock.patch.object(sys, "argv", ["bump", "--sources", str(self.src)]):
+                bump_bazzite.main()
+        self.assertEqual(self.src.read_text(), BAZZITE)
+        self.assertIn("userspace hashes", (Path(self.tmp) / "bazzite-todo.md").read_text())
 
 
 if __name__ == "__main__":

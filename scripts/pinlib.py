@@ -151,3 +151,12 @@ def get_layer(text: str, path: list[str]) -> tuple[str, str]:
     if not m:
         raise KeyError(f"{'.'.join(path)}.akmods")
     return m.group(1), m.group(2)
+
+
+def set_layer(text: str, path: list[str], digest: str) -> str:
+    """Replace the digest of the `akmods = layer "<repo>" "<digest>";` pin inside `path`."""
+    lo, hi = find_block(text, path)
+    m = _LAYER.search(text, lo, hi)
+    if not m:
+        raise KeyError(f"{'.'.join(path)}.akmods")
+    return text[: m.start(2)] + digest + text[m.end(2):]
