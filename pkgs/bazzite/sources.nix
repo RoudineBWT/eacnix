@@ -32,8 +32,8 @@ in
   ogc = rec {
     flavor = "ogc";
     kernel = rec {
-      version = "7.2.9";
-      release = "ogc3.1.fc44";
+      version = "7.2.11";
+      release = "ogc4.1.fc44";
       modDirVersion = "${version}-${release}.x86_64";
       # Vanilla source of the same upstream version, for kernelPackages tools.
       upstream = {
@@ -42,7 +42,7 @@ in
       };
       # ghcr.io/ublue-os/akmods:ogc-44-${modDirVersion}
       # @sha256:eb2de16215cbbd38bca0b1929bbfac1b157312655cfa7e138d8d213fe077ef5e
-      akmods = layer "akmods" "e0282fd2bba3dd1f386c791c40c1d57b0dcc2b49586653a1a62659cb5859f7db";
+      akmods = layer "akmods" "2134f73bcce19ff57d1b30391b1220c862f7b98817eac7630fa747433748635e";
     };
 
     # Universal Blue's builds of NVIDIA's open kernel modules for this kernel,
@@ -53,7 +53,7 @@ in
       version = "615.78.08";
       # ghcr.io/ublue-os/akmods-nvidia-open:ogc-44-${kernel.modDirVersion}
       # @sha256:c94ae195e720e52ccab0e9e1c1261081613b621d64d58018f6d03c0a0e2ad1c1
-      akmods = layer "akmods-nvidia-open" "29f0ea644b7095f517f0f2643f8d5a1ceaba3797f3063dee800d680be7ee2406";
+      akmods = layer "akmods-nvidia-open" "7a0bca1f42f6776a7e006d508c70ddc883dd8db232c4f40428d8d11e2f9d8906";
       kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.fc44.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' new_feature).
       userspace = {
