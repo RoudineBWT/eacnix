@@ -1,0 +1,65 @@
+name: "📌 Check pins"
+
+# Weekly: make sure every pinned artifact (Fedora's Koji RPMs, Universal Blue's
+# ghcr.io layers) can still be fetched. ghcr.io prunes old akmods tags after a
+# few months; a pin that went stale is found here, not by a user's rebuild.
+# Also runs on pull requests that touch the pins or the scripts.
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "scripts/**"
+      - ".github/workflows/check-pins.yml"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Script tests
+        run: python3 -W error::ResourceWarning -m unittest discover -s scripts -v
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Fetch and unpack every pinned artifact
+        run: |
+          nix build -L --no-link \
+            .#fedora-kernel \
+            .#fedora-boot-chain \
+            .#bazzite-kernel \
+            .#bazzite-lts-kernel \
+            .#eacnix-boot \
+            .#eacnix-check
+
+      - name: Open or update an issue when a pin can't be fetched (scheduled runs)
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Pinned artifacts can no longer be fetched"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          body="The weekly pin check failed: at least one pinned Fedora/Bazzite artifact can't be fetched or unpacked any more (see the log: $run_url). Bump the vendor's pins, see docs/automation.md."
+          gh label create pins --color BFD4F2 --description "Pinned vendor artifacts" 2>/dev/null || true
+          n=$(gh issue list --state open --label pins --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body "Still failing: $run_url"
+          else
+            gh issue create --title "$title" --label pins --body "$body"
+          fi

@@ -1,0 +1,41 @@
+name: "👀 Watch Bazzite"
+
+# Weekly: compare the kernel of Bazzite's current stable images with the pins
+# in pkgs/bazzite/sources.nix. Bazzite's pins are not bumped automatically: the
+# NVIDIA userspace hashes must match Universal Blue's kmod-nvidia exactly. The
+# report (new kernel string, akmods layer digests, kmod-nvidia version, kernel
+# tarball hash) becomes an issue with what to paste and what is left to do.
+
+on:
+  schedule:
+    - cron: "29 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compare with Bazzite stable
+        id: watch
+        run: python3 scripts/watch_bazzite.py
+
+      - name: Open an issue
+        if: steps.watch.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.watch.outputs.title }}
+        run: |
+          gh label create bump --color FBCA04 --description "Vendor kernel bump needed" 2>/dev/null || true
+          n=$(gh issue list --state all --label bump --search "\"$TITLE\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then
+            echo "Issue #$n already covers this kernel."
+          else
+            gh issue create --title "$TITLE" --label bump --body-file bazzite-report.md
+          fi

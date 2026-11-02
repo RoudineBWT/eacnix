@@ -3,3 +3,5 @@ result-*
 grub/
 kernel/
 inspect/
+__pycache__/
+*.pyc

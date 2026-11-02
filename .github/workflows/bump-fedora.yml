@@ -1,0 +1,106 @@
+name: "⬆️ Bump Fedora pins"
+
+# Weekly: look for a newer Fedora kernel/grub/shim (of the release pinned in
+# pkgs/fedora/sources.nix, stable repos only), rewrite the pins, refresh the
+# vendored kernel config, run the flake checks and open a pull request. The
+# merge stays manual: read the diff, it decides which signed boot chain the
+# EAC entry runs.
+#
+# Needs: Settings → Actions → General → "Allow GitHub Actions to create and
+# approve pull requests". A PR opened with the default token does not trigger
+# other workflows, which is why the flake checks run inside this job.
+
+on:
+  schedule:
+    - cron: "43 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      allow_unstable:
+        description: "Accept builds that are not in Fedora's stable repositories yet"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: bump-fedora
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Look for newer Fedora builds
+        id: bump
+        run: python3 scripts/bump_fedora.py ${{ inputs.allow_unstable && '--allow-unstable' || '' }}
+
+      - name: Skip if that bump is already proposed
+        id: dup
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          if git ls-remote --exit-code --heads origin "${{ steps.bump.outputs.branch }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Branch ${{ steps.bump.outputs.branch }} already exists, nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Free disk space
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Install Nix
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Refresh the vendored kernel config
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          nix build -L .#fedora-kernel.vendored -o vendored
+          cp -L --no-preserve=mode vendored/* pkgs/fedora/
+          rm vendored
+
+      - name: Enable KVM (for the VM tests)
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Flake checks
+        id: check
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        continue-on-error: true
+        run: nix flake check -L
+
+      - name: Open the pull request
+        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+          TITLE: ${{ steps.bump.outputs.title }}
+          CHECK: ${{ steps.check.outcome }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "eacnix pins bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A pkgs/fedora
+          git commit -m "$TITLE"
+          git push origin "$BRANCH"
+          if [ "$CHECK" = "success" ]; then
+            printf '\n`nix flake check` passed.\n' >> bump-summary.md
+            draft=""
+          else
+            printf '\n**`nix flake check` failed** (see the workflow run). Opened as a draft.\n' >> bump-summary.md
+            draft="--draft"
+          fi
+          gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file bump-summary.md $draft
