@@ -38,7 +38,7 @@ in
       # Vanilla source of the same upstream version, for kernelPackages tools.
       upstream = {
         url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz";
-        hash = "sha256-tMXfvlGjZKbH8DhpIA+IyOH3dANTkAXxS3/GvJG42Lo=";
+        hash = "sha256-/Q/EefmDqMBTE/E+nDYzD+ZlHPclOWdIxA1c2T+h5qQ=";
       };
       # ghcr.io/ublue-os/akmods:ogc-44-${modDirVersion}
       # @sha256:eb2de16215cbbd38bca0b1929bbfac1b157312655cfa7e138d8d213fe077ef5e
