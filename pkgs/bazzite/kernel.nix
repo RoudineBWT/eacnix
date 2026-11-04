@@ -30,7 +30,18 @@ let
     src = fetchurl sources.kernel.akmods;
     sourceRoot = ".";
     unpackCmd = "tar -xzf $curSrc";
-    installPhase = "cp -a . $out";
+    installPhase = ''
+      # The layer digest in sources.nix must belong to the same kernel as
+      # `version`/`release`; fail here with a readable message rather than
+      # later in rpm2archive.
+      if [ ! -e kernel-rpms/kernel-core-${modDirVersion}.rpm ]; then
+        echo "bazzite akmods layer pinned in pkgs/bazzite/sources.nix (${sources.flavor}) has no kernel-core-${modDirVersion}.rpm." >&2
+        echo "It contains: $(ls kernel-rpms | grep '^kernel-core-' | tr '\n' ' ')" >&2
+        echo "Update the akmods digests together with version/release (scripts/bump_bazzite.py), or revert version/release." >&2
+        exit 1
+      fi
+      cp -a . $out
+    '';
     dontFixup = true;
   };
 

@@ -24,6 +24,11 @@ let
     ];
     sha256 = digest;
   };
+
+  # `fc45` out of a kernel release like "ogc1.1.fc45". The akmods tags and the
+  # kmod-nvidia RPM names follow the kernel's own Fedora (`fc45`), which can be
+  # newer than the Bazzite image's `release` below.
+  fc = kernelRelease: builtins.head (builtins.match ".*\\.(fc[0-9]+)" kernelRelease);
 in
 {
   release = "44";
@@ -32,17 +37,17 @@ in
   ogc = rec {
     flavor = "ogc";
     kernel = rec {
-      version = "7.2.11";
-      release = "ogc4.1.fc44";
+      version = "7.2.15";
+      release = "ogc1.1.fc45";
       modDirVersion = "${version}-${release}.x86_64";
       # Vanilla source of the same upstream version, for kernelPackages tools.
       upstream = {
         url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz";
-        hash = "sha256-/Q/EefmDqMBTE/E+nDYzD+ZlHPclOWdIxA1c2T+h5qQ=";
+        hash = "sha256-0Pax1zJMk3zK61xMpwhL/Pcdsu2z4tOjHwrYOmgYCas=";
       };
-      # ghcr.io/ublue-os/akmods:ogc-44-${modDirVersion}
+      # ghcr.io/ublue-os/akmods:ogc-<fcNN>-${modDirVersion}
       # @sha256:eb2de16215cbbd38bca0b1929bbfac1b157312655cfa7e138d8d213fe077ef5e
-      akmods = layer "akmods" "2134f73bcce19ff57d1b30391b1220c862f7b98817eac7630fa747433748635e";
+      akmods = layer "akmods" "10cb0312b00d6ada5aeb30e85527dc9d63164e8ccffe6c7f9aa741ece81e7914";
     };
 
     # Universal Blue's builds of NVIDIA's open kernel modules for this kernel,
@@ -51,10 +56,10 @@ in
     nvidia = rec {
       proprietary = false;
       version = "615.78.08";
-      # ghcr.io/ublue-os/akmods-nvidia-open:ogc-44-${kernel.modDirVersion}
+      # ghcr.io/ublue-os/akmods-nvidia-open:ogc-<fcNN>-${kernel.modDirVersion}
       # @sha256:c94ae195e720e52ccab0e9e1c1261081613b621d64d58018f6d03c0a0e2ad1c1
-      akmods = layer "akmods-nvidia-open" "7a0bca1f42f6776a7e006d508c70ddc883dd8db232c4f40428d8d11e2f9d8906";
-      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.fc44.x86_64.rpm";
+      akmods = layer "akmods-nvidia-open" "9185f3b28e58fb4aef41dbc8faa10725146783588dd779e6d72879df21b9576c";
+      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.${fc kernel.release}.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' new_feature).
       userspace = {
         inherit version;
@@ -70,16 +75,16 @@ in
   ogc-lts = rec {
     flavor = "ogc-lts";
     kernel = rec {
-      version = "6.18.56";
-      release = "ogc1.1.fc44";
+      version = "6.18.60";
+      release = "ogc1.1.fc45";
       modDirVersion = "${version}-${release}.x86_64";
       upstream = {
         url = "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${version}.tar.xz";
-        hash = "sha256-RjO72iq5Xq8qevQEEjZFHWdZxy5pRiZVMa9LOqzvv4k=";
+        hash = "sha256-PC9E72rMAhp61ETZoubsHvSI/wk2h5PQAEpggPadYh4=";
       };
-      # ghcr.io/ublue-os/akmods:ogc-lts-44-${modDirVersion}
+      # ghcr.io/ublue-os/akmods:ogc-lts-<fcNN>-${modDirVersion}
       # @sha256:a728c03d80b502817db6b02a5606c48be9052d294995b9e0e2611e144d6f86e6
-      akmods = layer "akmods" "1a9a53044f2894f03abbcada7773569b5c664ec1728a9be637f0982959c0cf60";
+      akmods = layer "akmods" "079343f3e10c22471a23be8bf65841651e62d37598b7a644188cbf977e8ea5bc";
     };
 
     # Universal Blue's builds of NVIDIA's proprietary kernel modules (the 580
@@ -87,17 +92,17 @@ in
     # the same MOK, and NVIDIA's userspace at the exact same version.
     nvidia = rec {
       proprietary = true;
-      version = "580.178.04";
-      # ghcr.io/ublue-os/akmods-nvidia-lts:ogc-lts-44-${kernel.modDirVersion}
+      version = "580.196.07";
+      # ghcr.io/ublue-os/akmods-nvidia-lts:ogc-lts-<fcNN>-${kernel.modDirVersion}
       # @sha256:5503b8fa2b2f3496b1803a17d826ba6b345e387911f31e576ba4fc9b9f4af3f3
-      akmods = layer "akmods-nvidia-lts" "f0549d5ff20bf3bb264fd89a8dff98ab88cc1e6598ad81800097b7af1fac7e23";
-      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.fc44.x86_64.rpm";
+      akmods = layer "akmods-nvidia-lts" "21005e8ce879c835f5b1bd0ee80ccc124ab6e5b9d1e4ddc825cacb3a1e87dd67";
+      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.${fc kernel.release}.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' legacy_580).
       userspace = {
         inherit version;
-        sha256_64bit = "sha256-WXWobuRb/8tib1GuM9EWmxCBhqLqR61lHnLxP6S21vk=";
-        settingsSha256 = "sha256-KcrGHoR+ZMdsFyI4myU8/eVls2f8GkNSX/j2JnZndyM=";
-        persistencedSha256 = "sha256-3Omj160wtWdKAZDzWt/m/cbUTQ9DMJ1rSxMrnIrKXiw=";
+        sha256_64bit = "sha256-CqsFGNtTz3PEEtx/MrvIUMqV6DnYkj0N5L/0LByRac4=";
+        settingsSha256 = "sha256-j7ENxh4VYIirMJSVVs2ei+NQULW5an8s4VQEwhVAqhc=";
+        persistencedSha256 = "sha256-s7nI5BlnUwwPVoDjdete6B2wjDcoVgDd0UK9aZBrk00=";
       };
     };
   };

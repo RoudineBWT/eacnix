@@ -5,3 +5,5 @@ kernel/
 inspect/
 __pycache__/
 *.pyc
+bump-summary.md
+bazzite-todo.md

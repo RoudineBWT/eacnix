@@ -117,6 +117,17 @@ def nvidia_version(repo: str, digest: str, tok: str) -> str | None:
     return None
 
 
+def tag_release(kernel_release: str, fallback: str) -> str:
+    """Fedora number the akmods tags are named after: the kernel's own `.fcNN`.
+
+    Bazzite can ship a kernel built for a newer Fedora than the image's
+    (`7.2.15-ogc1.1.fc45` on a Fedora 44 image), and Universal Blue publishes
+    its akmods as `ogc-45-...`, not `ogc-44-...`.
+    """
+    m = re.search(r"\.fc(\d+)$", kernel_release.removesuffix(".x86_64"))
+    return m.group(1) if m else fallback
+
+
 def kernel_tarball_sri(version: str) -> str | None:
     major = version.split(".")[0]
     try:
@@ -169,7 +180,7 @@ def main() -> int:
 
         for key in ("akmods", "nvidia"):
             repo, tag_tpl = cfg[key]
-            tag = tag_tpl.format(rel=fedora, mod=live_mod)
+            tag = tag_tpl.format(rel=tag_release(release, fedora), mod=live_mod)
             digest = single_layer(repo, tag, tok)
             if digest is None:
                 lines.append(f"# {key}: ghcr.io/ublue-os/{repo}:{tag} not published yet")

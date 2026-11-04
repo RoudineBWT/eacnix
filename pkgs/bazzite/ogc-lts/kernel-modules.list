@@ -5478,7 +5478,6 @@ tcp_lp
 tcp_nv
 tcp_scalable
 tcp_sigpool
-tcp_ulp_smc
 tcp_ulp_tls
 tcp_vegas
 tcp_veno

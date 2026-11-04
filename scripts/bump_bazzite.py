@@ -68,6 +68,7 @@ def plan(text: str, flavor: str, cfg: dict, fedora: str, tok: str, live_mod: str
     """New text for one flavour, plus summary lines. Raises Skip."""
     version, release = live_mod.removesuffix(".x86_64").split("-", 1)
     lines = []
+    rel = wb.tag_release(release, fedora)
 
     sri = wb.kernel_tarball_sri(version)
     if not sri:
@@ -79,7 +80,7 @@ def plan(text: str, flavor: str, cfg: dict, fedora: str, tok: str, live_mod: str
     digests = {}
     for key in ("akmods", "nvidia"):
         repo, tag_tpl = cfg[key]
-        tag = tag_tpl.format(rel=fedora, mod=live_mod)
+        tag = tag_tpl.format(rel=rel, mod=live_mod)
         digest = wb.single_layer(repo, tag, tok)
         if digest is None:
             raise Skip(f"ghcr.io/ublue-os/{repo}:{tag} isn't published yet")
@@ -90,7 +91,7 @@ def plan(text: str, flavor: str, cfg: dict, fedora: str, tok: str, live_mod: str
     repo, digest = digests["nvidia"]
     nv = wb.nvidia_version(repo, digest, tok)
     if not nv:
-        raise Skip(f"no kmod-nvidia rpm found in {repo}:{cfg['nvidia'][1].format(rel=fedora, mod=live_mod)}")
+        raise Skip(f"no kmod-nvidia rpm found in {repo}:{cfg['nvidia'][1].format(rel=rel, mod=live_mod)}")
     old_nv = get_field(text, [flavor, "nvidia"], "version")
     if nv != old_nv:
         text = set_field(text, [flavor, "nvidia"], "version", nv)
@@ -106,6 +107,9 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--sources", default="pkgs/bazzite/sources.nix")
     ap.add_argument("--tag", default="stable", help="Bazzite image tag to follow")
+    ap.add_argument("--force", action="store_true",
+                    help="re-resolve flavours whose version already matches Bazzite's "
+                         "(repairs a hand-edited pin whose akmods digests are stale)")
     ap.add_argument("--dry-run", action="store_true", help="report only, write nothing")
     args = ap.parse_args()
 
@@ -131,7 +135,7 @@ def main() -> int:
         version, release = live_mod.removesuffix(".x86_64").split("-", 1)
         live_key = (version_key(version), release_key(release))
         pin_key = (version_key(pin_ver), release_key(pin_rel))
-        if live_key == pin_key:
+        if live_key == pin_key and not args.force:
             print(f"{flavor}: current ({pinned_mod})")
             continue
         if live_key < pin_key:
