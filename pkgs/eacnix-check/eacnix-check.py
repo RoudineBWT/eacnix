@@ -121,7 +121,7 @@ def common_name(der):
 WELL_KNOWN = re.compile(
     r"Canonical Ltd\. Master Certificate Authority|Fedora Secure Boot CA|Universal Blue"
     r"|Debian Secure Boot CA|openSUSE Secure Boot CA|SUSE Linux Enterprise Secure Boot CA"
-    r"|Rocky Linux Secure Boot Root CA|Microsoft (Corporation )?UEFI CA"
+    r"|Rocky Linux Secure Boot Root CA|AlmaLinux Secure Boot CA|Microsoft (Corporation )?UEFI CA"
 )
 
 # Name attributes: commonName, organizationName, organizationalUnitName.
