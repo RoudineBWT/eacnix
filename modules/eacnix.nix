@@ -254,12 +254,11 @@ in
 
     kconfigServices = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default =
-        lib.optional (config.services.scx.enable or false) "scx"
-        ++ lib.optional ((config.services.scx_loader or { }).enable or false) "scx_loader";
+      # `services.scx` was removed from nixpkgs: even `or false` can't guard it,
+      # reading a removed option throws. Only scx-loader (unit `scx_loader`) remains.
+      default = lib.optional ((config.services.scx-loader or { }).enable or false) "scx_loader";
       defaultText = lib.literalExpression ''
-        lib.optional config.services.scx.enable "scx"
-        ++ lib.optional config.services.scx_loader.enable "scx_loader"
+        lib.optional config.services.scx-loader.enable "scx_loader"
       '';
       description = ''
         systemd services that load BPF programs reading kernel config (libbpf
