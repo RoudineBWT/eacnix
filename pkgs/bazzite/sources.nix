@@ -37,17 +37,17 @@ in
   ogc = rec {
     flavor = "ogc";
     kernel = rec {
-      version = "7.2.15";
+      version = "7.3.3";
       release = "ogc1.1.fc45";
       modDirVersion = "${version}-${release}.x86_64";
       # Vanilla source of the same upstream version, for kernelPackages tools.
       upstream = {
         url = "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz";
-        hash = "sha256-0Pax1zJMk3zK61xMpwhL/Pcdsu2z4tOjHwrYOmgYCas=";
+        hash = "sha256-ecZt3mbNlod/zej302rslGsfQj0rl7WnsXUbdcdk89E=";
       };
       # ghcr.io/ublue-os/akmods:ogc-<fcNN>-${modDirVersion}
       # @sha256:eb2de16215cbbd38bca0b1929bbfac1b157312655cfa7e138d8d213fe077ef5e
-      akmods = layer "akmods" "10cb0312b00d6ada5aeb30e85527dc9d63164e8ccffe6c7f9aa741ece81e7914";
+      akmods = layer "akmods" "a573f2140828f9b53341fa826b152f723113f76c05ee8a4ced3f3880aad25b67";
     };
 
     # Universal Blue's builds of NVIDIA's open kernel modules for this kernel,
@@ -55,17 +55,17 @@ in
     # version (the driver refuses modules of another version).
     nvidia = rec {
       proprietary = false;
-      version = "615.78.08";
+      version = "620.70.06";
       # ghcr.io/ublue-os/akmods-nvidia-open:ogc-<fcNN>-${kernel.modDirVersion}
       # @sha256:c94ae195e720e52ccab0e9e1c1261081613b621d64d58018f6d03c0a0e2ad1c1
-      akmods = layer "akmods-nvidia-open" "9185f3b28e58fb4aef41dbc8faa10725146783588dd779e6d72879df21b9576c";
+      akmods = layer "akmods-nvidia-open" "abd4ae9ae50a6f224eb413509d582ae5bd5d2844d3ef1b27b2e278f9f4aec76f";
       kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.${fc kernel.release}.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' new_feature).
       userspace = {
         inherit version;
-        sha256_64bit = "sha256-Pj9t3cLudnoIGFMAr3vjyyhuznZpjS3eNSRZl4LQf/4=";
-        settingsSha256 = "sha256-inDRpG02sdDgHmlqgu/DsgK8OFdOt1fZIYyXdhlGC/c=";
-        persistencedSha256 = "sha256-RzeR6Ldct6MUxjnXRyThdh5Y3jjMehTVg85MtwuWNX4=";
+        sha256_64bit = "sha256-KRGOOr0IwHVZvMo9nHYjjQOUkK8DYqLlvPy+cgSv1LE=";
+        settingsSha256 = "sha256-CFBRmXFJ9eAf5BRlHMBolahz1Pshr9giI7zcZC29oZ8=";
+        persistencedSha256 = "sha256-FpGzhArrvR1nEt8lKDzNEnbvHvGP36gL1dINvpDAkpA=";
       };
     };
   };
