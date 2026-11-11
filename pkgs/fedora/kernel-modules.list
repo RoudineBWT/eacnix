@@ -13,6 +13,7 @@
 8250_exar
 8250_lpss
 8250_mid
+8250_mxpcie
 8250_pci
 8250_pci1xxxx
 8250_pericom
@@ -135,12 +136,15 @@ adc128d818
 adc_battery_helper
 adcxx
 ade9000
+adf41513
 adf4377
 adf7242
 adi_i3c_master
 adiantum
 adin
 adin1110
+adin1140
+adin1140_phy
 adis16475
 adis16550
 adis_lib
@@ -245,6 +249,7 @@ amd8111e
 amd_3d_vcache
 amd_atl
 amd_freq_sensitivity
+amd_halo_led
 amd_hfi
 amd_hsmp
 amd_isp4
@@ -255,6 +260,7 @@ amd_pstate_ut
 amd_qdma
 amd_rng
 amd_sfh
+amd_sfh_tabletmode
 amd_uncore
 amd_xgbe
 amdgpu
@@ -499,6 +505,7 @@ bpf_crypto_skcipher
 bpf_preload
 bq24190_charger
 bq2515x_charger
+bq25630_charger
 bq256xx_charger
 bq25890_charger
 bq27xxx_battery
@@ -579,11 +586,13 @@ cb710
 cb710_mmc
 cb7210
 cbc
+cbc_aes_lib
 cbcmac
 cbcmac_aes_lib
 cc2520
 cciss
 ccm
+ccm_aes_lib
 ccm_base
 ccp
 ccp_crypto
@@ -779,9 +788,11 @@ crypto_cast5_generic
 crypto_cast6
 crypto_cast6_generic
 crypto_cbc
+crypto_cbc_aes_lib
 crypto_cbcmac
 crypto_cbcmac_aes_lib
 crypto_ccm
+crypto_ccm_aes_lib
 crypto_ccm_base
 crypto_chacha20
 crypto_chacha20_lib
@@ -791,7 +802,9 @@ crypto_crc32
 crypto_crc32c
 crypto_cryptd
 crypto_ctr
+crypto_ctr_aes_lib
 crypto_cts
+crypto_cts_cbc_aes_lib
 crypto_deflate
 crypto_deflate_generic
 crypto_des
@@ -802,6 +815,7 @@ crypto_dh
 crypto_digest_null
 crypto_drbg_nopr_hmac_sha512
 crypto_ecb
+crypto_ecb_aes_lib
 crypto_ecdh
 crypto_ecdsa_generic
 crypto_ecdsa_nist_p192
@@ -814,6 +828,7 @@ crypto_ecrdsa_generic
 crypto_engine
 crypto_essiv
 crypto_gcm
+crypto_gcm_aes_lib
 crypto_gcm_base
 crypto_hash
 crypto_hctr2
@@ -845,6 +860,7 @@ crypto_pkcs1
 crypto_pkcs1pad
 crypto_rfc3686
 crypto_rfc4106
+crypto_rfc4106_gcm_aes_lib
 crypto_rfc4309
 crypto_rfc4543
 crypto_rfc7539
@@ -898,7 +914,9 @@ crypto_xchacha12_lib
 crypto_xchacha20
 crypto_xchacha20_lib
 crypto_xctr
+crypto_xctr_aes_lib
 crypto_xts
+crypto_xts_aes_lib
 crypto_xxhash64
 crypto_xxhash64_generic
 crypto_zstd
@@ -916,7 +934,9 @@ cs53l32a
 cs_dsp
 csiostor
 ctr
+ctr_aes_lib
 cts
+cts_cbc_aes_lib
 ctucanfd
 ctucanfd_pci
 cw1200_core
@@ -1234,6 +1254,7 @@ ebtable_nat
 ebtables
 ec100
 ecb
+ecb_aes_lib
 ecc
 ecdh
 ecdh_generic
@@ -1406,7 +1427,6 @@ fs_fuseblk
 fs_fusectl
 fs_hfs
 fs_hfsplus
-fs_ibmasmfs
 fs_iso9660
 fs_jffs2
 fs_jfs
@@ -1460,6 +1480,7 @@ gc0308
 gc0310
 gc2145
 gcm
+gcm_aes_lib
 gcm_base
 genet
 geneve
@@ -1533,7 +1554,6 @@ gpu_sched
 grace
 grant_dma_ops
 gre
-gru
 gs1662
 gs_usb
 gspca_benq
@@ -1662,6 +1682,7 @@ hid_holtek_mouse
 hid_holtekff
 hid_huawei
 hid_hyperv
+hid_hyperx
 hid_icade
 hid_ite
 hid_jabra
@@ -1687,6 +1708,7 @@ hid_megaworld
 hid_mf
 hid_microsoft
 hid_monterey
+hid_msi
 hid_multitouch
 hid_nintendo
 hid_nti
@@ -1742,6 +1764,7 @@ hid_sony
 hid_speedlink
 hid_steam
 hid_steelseries
+hid_steelseries_arctis
 hid_sunplus
 hid_thrustmaster
 hid_tivo
@@ -1900,7 +1923,6 @@ ib_umad
 ib_uverbs
 ib_uverbs_support
 ibmaem
-ibmasm
 ibmasr
 ibmpex
 ice
@@ -1956,6 +1978,7 @@ imx296
 imx319
 imx355
 imx471
+imx678
 ina209
 ina233
 ina238
@@ -2090,6 +2113,9 @@ intel_xway
 inv_icm42600
 inv_icm42600_i2c
 inv_icm42600_spi
+inv_icm42607
+inv_icm42607_i2c
+inv_icm42607_spi
 inv_icm45600
 inv_icm45600_i2c
 inv_icm45600_i3c
@@ -2383,7 +2409,6 @@ ipu_bridge
 ipvlan
 ipvtap
 ipw
-ipwireless
 iqs269a
 iqs5xx
 iqs626a
@@ -2405,6 +2430,7 @@ ir_usb
 ir_xmp_decoder
 irdma
 irqbypass
+isa1200
 isci
 iscsi_boot_sysfs
 iscsi_ibft
@@ -2420,6 +2446,8 @@ isl6423
 isl7998x
 iso9660
 isofs
+issei
+issei_heci
 isst_if_common
 isst_if_mbox_msr
 isst_if_mbox_pci
@@ -2449,6 +2477,7 @@ iwlmld
 iwlmvm
 iwlwifi
 ix2505v
+ixd
 ixgbe
 ixgbevf
 jbd2
@@ -2507,6 +2536,7 @@ lattice_sysconfig
 lattice_sysconfig_spi
 lcd
 ldusb
+leapraid
 led_class
 led_class_flash
 led_class_multicolor
@@ -2527,6 +2557,7 @@ leds_lp3952
 leds_lp50xx
 leds_lp5812
 leds_lt3593
+leds_ltc3220
 leds_max5970
 leds_max77705
 leds_mlxcpld
@@ -2556,6 +2587,7 @@ legousbtower
 lenovo_ec_sensors
 lenovo_se10_wdt
 lenovo_se30_wdt
+lenovo_se30g2_se60_wdt
 lenovo_wmi_camera
 lenovo_wmi_capdata
 lenovo_wmi_events
@@ -2563,6 +2595,7 @@ lenovo_wmi_gamezone
 lenovo_wmi_helpers
 lenovo_wmi_hotkey_utilities
 lenovo_wmi_other
+lenovo_yb9_kbdock
 lenovo_ymc
 lenovo_yoga_tab2_pro_1380_fastcharger
 lenovo_yogabook
@@ -2575,7 +2608,6 @@ lgdt330x
 lgs8gxx
 libaes
 libaescfb
-libaesgcm
 libahci
 libahci_platform
 libarc4
@@ -2599,7 +2631,9 @@ libfcoe
 libgf128hash
 libie
 libie_adminq
+libie_cp
 libie_fwlog
+libie_pci
 libiscsi
 libiscsi_tcp
 libmd5
@@ -2663,6 +2697,7 @@ lt3651_charger
 lt6911uxe
 lt7182s
 ltc1660
+ltc2378
 ltc2664
 ltc2688
 ltc2945
@@ -2803,6 +2838,7 @@ mcp3911
 mcp4018
 mcp41010
 mcp4728
+mcp47a1
 mcp47feb02
 mcp4821
 mcp9600
@@ -2813,6 +2849,7 @@ mct_u232
 mctp_i3c
 mctp_serial
 mctp_usb
+mctp_usblib
 md
 md4
 md5
@@ -2952,6 +2989,7 @@ mpls_gso
 mpls_iptunnel
 mpls_router
 mpq7932
+mpq82d00
 mpq8785
 mprls0025pa
 mprls0025pa_i2c
@@ -3551,11 +3589,14 @@ nxp_c45_tja
 nxp_cbtx
 nxp_nci
 nxp_nci_i2c
+nxpwifi
+nxpwifi_sdio
 nxt200x
 nxt6000
 nzxt_kraken2
 nzxt_kraken3
 nzxt_smart2
+oa_tc6
 objagg
 ocrdma
 octeon_ep
@@ -3879,6 +3920,8 @@ qla4xxx
 qlcnic
 qm1d1b0004
 qm1d1c0042
+qmc5883l
+qmc6308
 qmi_helpers
 qmi_wwan
 qnap_mcu
@@ -4059,7 +4102,7 @@ rc_tt_1500
 rc_twinhan1027
 rc_twinhan_dtv_cab_ci
 rc_vega_s9x
-rc_videomate_m1f
+rc_videomate_k100
 rc_videomate_s350
 rc_videomate_tv_pvr
 rc_videostrong_kii_pro
@@ -4105,6 +4148,7 @@ reset_gpio
 reset_tps380x
 rfc3686
 rfc4106
+rfc4106_gcm_aes_lib
 rfc4309
 rfc4543
 rfc7539
@@ -4369,9 +4413,12 @@ rtw89_8852cu
 rtw89_8922a
 rtw89_8922ae
 rtw89_8922au
+rtw89_8922d
+rtw89_8922de
 rtw89_core
 rtw89_pci
 rtw89_usb
+rust_binder
 rxrpc
 s2250
 s2255drv
@@ -4424,7 +4471,6 @@ sbp2
 sbp_target
 sbs
 sbshc
-sbtsi_temp
 sc16is7xx
 sc16is7xx_i2c
 sc16is7xx_spi
@@ -4520,6 +4566,7 @@ sfc_falcon
 sfc_siena
 sfp
 sg
+sgm41542_charger
 sha1
 sha1_all
 sha1_lib
@@ -4712,6 +4759,8 @@ snd_hda_codec_via
 snd_hda_core
 snd_hda_ext_core
 snd_hda_intel
+snd_hda_scodec_aw88399
+snd_hda_scodec_aw88399_i2c
 snd_hda_scodec_component
 snd_hda_scodec_cs35l41
 snd_hda_scodec_cs35l41_i2c
@@ -4809,6 +4858,9 @@ snd_soc_adau1761
 snd_soc_adau1761_i2c
 snd_soc_adau1761_spi
 snd_soc_adau17x1
+snd_soc_adau1977
+snd_soc_adau1977_i2c
+snd_soc_adau1977_spi
 snd_soc_adau7002
 snd_soc_adau7118
 snd_soc_adau7118_hw
@@ -4847,6 +4899,7 @@ snd_soc_aw88261
 snd_soc_aw88395
 snd_soc_aw88395_lib
 snd_soc_aw88399
+snd_soc_aw88399_lib
 snd_soc_bd28623
 snd_soc_bdw_rt286
 snd_soc_bt_sco
@@ -4991,6 +5044,7 @@ snd_soc_rt715
 snd_soc_rt715_sdca
 snd_soc_rt721_sdca
 snd_soc_rt722_sdca
+snd_soc_rt766_sdca
 snd_soc_rt9123
 snd_soc_rt9123p
 snd_soc_rt_sdw_common
@@ -5077,6 +5131,7 @@ snd_soc_wm8961
 snd_soc_wm_adsp
 snd_soc_wsa883x
 snd_soc_wsa884x
+snd_soc_wsa885x
 snd_soc_zl38060
 snd_sof
 snd_sof_acpi
@@ -5085,6 +5140,7 @@ snd_sof_acpi_intel_byt
 snd_sof_amd_acp
 snd_sof_amd_acp63
 snd_sof_amd_acp70
+snd_sof_amd_acp7x
 snd_sof_amd_rembrandt
 snd_sof_amd_renoir
 snd_sof_amd_vangogh
@@ -5303,6 +5359,7 @@ sx9360
 sx_common
 sy7636a_hwmon
 sy7636a_regulator
+sy7758
 sym53c8xx
 symbolserial
 synaptics_i2c
@@ -5413,6 +5470,7 @@ ti_adc128s052
 ti_ads1015
 ti_ads1018
 ti_ads1100
+ti_ads112c14
 ti_ads131e08
 ti_ads131m02
 ti_ads7138
@@ -5756,12 +5814,6 @@ vmwgfx
 vmxnet3
 vp27smpx
 vp_vdpa
-vport_geneve
-vport_gre
-vport_type_3
-vport_type_4
-vport_type_5
-vport_vxlan
 vpx3220
 vrf
 vringh
@@ -5771,6 +5823,7 @@ vsock_loopback
 vsockmon
 vsxxxaa
 vt1211
+vt7505
 vt8231
 vub300
 vx855
@@ -5807,6 +5860,7 @@ wacom_i2c
 wacom_serial4
 wacom_w8001
 wacom_w9000
+wakeup
 watchdog
 wbsd
 wcn36xx
@@ -5857,6 +5911,7 @@ xchacha12_lib
 xchacha20
 xchacha20_lib
 xctr
+xctr_aes_lib
 xdma
 xdp710
 xdpe152c4
@@ -5921,12 +5976,8 @@ xillybus_pcie
 xillyusb
 xiphera_trng
 xirc2ps_cs
-xircom_cb
 xlnx_vcu
 xor
-xp
-xpc
-xpnet
 xprtrdma
 xr_serial
 xrs700x
@@ -6010,6 +6061,7 @@ xt_time
 xt_u32
 xt_udp
 xts
+xts_aes_lib
 xusbatm
 xxhash
 xxhash64

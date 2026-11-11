@@ -7,7 +7,7 @@ in
   release = "fc45";
 
   kernel = rec {
-    version = "7.2.15";
+    version = "7.3.3";
     release = "300.fc45";
     modDirVersion = "${version}-${release}.x86_64";
     # Vanilla source of the same upstream version. Userspace tools in
@@ -16,20 +16,20 @@ in
     # builds from this.
     upstream = {
       url = "https://cdn.kernel.org/pub/linux/kernel/v${builtins.head (builtins.splitVersion version)}.x/linux-${version}.tar.xz";
-      hash = "sha256-0Pax1zJMk3zK61xMpwhL/Pcdsu2z4tOjHwrYOmgYCas=";
+      hash = "sha256-ecZt3mbNlod/zej302rslGsfQj0rl7WnsXUbdcdk89E=";
     };
     rpms = {
       core = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-core-${modDirVersion}.rpm";
-        hash = "sha256-DyTYIlKFpTBzshhKGlqoAURGBIqg8w3ex6X/uuRAFfo=";
+        hash = "sha256-QQjccLkdRtzPg9vgTZQDbDmpr/BVxRR0kOxMAIJLCZE=";
       };
       modules-core = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-modules-core-${modDirVersion}.rpm";
-        hash = "sha256-YGswUlQ0xXNGiHZ9gq1orUtPsXKurwIt1FjDxYh8Bbc=";
+        hash = "sha256-jpFn7/8owtn+un4GEimbL8C/XyjjDTR2p5CaNh4plTM=";
       };
       modules = {
         url = "${koji}/kernel/${version}/${release}/x86_64/kernel-modules-${modDirVersion}.rpm";
-        hash = "sha256-cdeBZmQt43YzU86g18LQNZUrH4xblintoV9T2UGOizQ=";
+        hash = "sha256-hAocmARXSh4XhNPZJd8MwzU4ZqMbkSPPnmFPBWsfAng=";
       };
     };
   };
