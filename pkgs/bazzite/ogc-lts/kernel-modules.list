@@ -442,6 +442,7 @@ blake2b_512_generic
 blake2b_generic
 blake2s_kunit
 block2mtd
+blocklayoutdriver
 blowfish
 blowfish_asm
 blowfish_common
@@ -1476,7 +1477,6 @@ fs_gfs2
 fs_gfs2meta
 fs_hfs
 fs_hfsplus
-fs_ibmasmfs
 fs_iso9660
 fs_jffs2
 fs_jfs
@@ -1613,7 +1613,6 @@ grant_dma_ops
 gre
 grip
 grip_mp
-gru
 gs1662
 gs_usb
 gspca_benq
@@ -1978,7 +1977,6 @@ ib_srpt
 ib_umad
 ib_uverbs
 ibmaem
-ibmasm
 ibmasr
 ibmpex
 ice
@@ -2463,7 +2461,6 @@ ipv6
 ipvlan
 ipvtap
 ipw
-ipwireless
 iqs269a
 iqs5xx
 iqs626a
@@ -3426,6 +3423,12 @@ nfp
 nfs
 nfs4
 nfs_acl
+nfs_layout_flexfiles
+nfs_layout_nfsv41_files
+nfs_layouttype4_1
+nfs_layouttype4_3
+nfs_layouttype4_4
+nfs_layouttype4_5
 nfs_localio
 nfsd
 nfsv3
@@ -3912,7 +3915,6 @@ processor_thermal_rfim
 processor_thermal_soc_slider
 processor_thermal_wt_hint
 processor_thermal_wt_req
-property_entry_test
 prp_dup_discard_test
 ps883x
 psample
@@ -4534,7 +4536,6 @@ sbp2
 sbp_target
 sbs
 sbshc
-sbtsi_temp
 sc16is7xx
 sc16is7xx_i2c
 sc16is7xx_spi
@@ -6081,13 +6082,9 @@ xillybus_pcie
 xillyusb
 xiphera_trng
 xirc2ps_cs
-xircom_cb
 xlnx_vcu
 xor
-xp
 xpad
-xpc
-xpnet
 xprtrdma
 xr_serial
 xrs700x
