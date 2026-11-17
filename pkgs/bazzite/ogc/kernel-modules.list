@@ -138,6 +138,7 @@ adc_battery_helper
 adc_joystick
 adcxx
 ade9000
+adf41513
 adf4377
 adf7242
 adi
@@ -145,6 +146,8 @@ adi_i3c_master
 adiantum
 adin
 adin1110
+adin1140
+adin1140_phy
 adis16475
 adis16550
 adis_lib
@@ -254,6 +257,7 @@ amd8111e
 amd_3d_vcache
 amd_atl
 amd_freq_sensitivity
+amd_halo_led
 amd_hfi
 amd_hsmp
 amd_isp4
@@ -264,6 +268,7 @@ amd_pstate_ut
 amd_qdma
 amd_rng
 amd_sfh
+amd_sfh_tabletmode
 amd_uncore
 amd_xgbe
 amdgpu
@@ -546,6 +551,7 @@ bpf_crypto_skcipher
 bpf_preload
 bq24190_charger
 bq2515x_charger
+bq25630_charger
 bq256xx_charger
 bq25890_charger
 bq27xxx_battery
@@ -1819,6 +1825,7 @@ hid_holtek_mouse
 hid_holtekff
 hid_huawei
 hid_hyperv
+hid_hyperx
 hid_icade
 hid_ite
 hid_jabra
@@ -2127,6 +2134,7 @@ imx296
 imx319
 imx355
 imx471
+imx678
 ina209
 ina233
 ina238
@@ -2266,6 +2274,9 @@ interact
 inv_icm42600
 inv_icm42600_i2c
 inv_icm42600_spi
+inv_icm42607
+inv_icm42607_i2c
+inv_icm42607_spi
 inv_icm45600
 inv_icm45600_i2c
 inv_icm45600_i3c
@@ -2582,6 +2593,7 @@ ir_xmp_decoder
 irdma
 irqbypass
 is_signed_type_kunit
+isa1200
 isci
 iscsi_boot_sysfs
 iscsi_ibft
@@ -2598,6 +2610,8 @@ isl7998x
 iso9660
 isofs
 isp1760
+issei
+issei_heci
 isst_if_common
 isst_if_mbox_msr
 isst_if_mbox_pci
@@ -2630,6 +2644,7 @@ iwlmvm_tests
 iwlwifi
 iwlwifi_tests
 ix2505v
+ixd
 ixgbe
 ixgbevf
 jbd2
@@ -2700,6 +2715,7 @@ lattice_sysconfig_spi
 lazy_mmu_mode_kunit
 lcd
 ldusb
+leapraid
 led_class
 led_class_flash
 led_class_multicolor
@@ -2721,6 +2737,7 @@ leds_lp3952
 leds_lp50xx
 leds_lp5812
 leds_lt3593
+leds_ltc3220
 leds_max5970
 leds_max77705
 leds_mlxcpld
@@ -2752,6 +2769,7 @@ legousbtower
 lenovo_ec_sensors
 lenovo_se10_wdt
 lenovo_se30_wdt
+lenovo_se30g2_se60_wdt
 lenovo_wmi_camera
 lenovo_wmi_capdata
 lenovo_wmi_events
@@ -2759,6 +2777,7 @@ lenovo_wmi_gamezone
 lenovo_wmi_helpers
 lenovo_wmi_hotkey_utilities
 lenovo_wmi_other
+lenovo_yb9_kbdock
 lenovo_ymc
 lenovo_yoga_tab2_pro_1380_fastcharger
 lenovo_yogabook
@@ -2863,6 +2882,7 @@ lt3651_charger
 lt6911uxe
 lt7182s
 ltc1660
+ltc2378
 ltc2664
 ltc2688
 ltc2945
@@ -3006,6 +3026,7 @@ mcp3911
 mcp4018
 mcp41010
 mcp4728
+mcp47a1
 mcp47feb02
 mcp4821
 mcp9600
@@ -3160,6 +3181,7 @@ mpls_gso
 mpls_iptunnel
 mpls_router
 mpq7932
+mpq82d00
 mpq8785
 mprls0025pa
 mprls0025pa_i2c
@@ -3773,11 +3795,14 @@ nxp_c45_tja
 nxp_cbtx
 nxp_nci
 nxp_nci_i2c
+nxpwifi
+nxpwifi_sdio
 nxt200x
 nxt6000
 nzxt_kraken2
 nzxt_kraken3
 nzxt_smart2
+oa_tc6
 objagg
 ocfs2
 ocfs2_dlm
@@ -4056,7 +4081,6 @@ processor_thermal_rfim
 processor_thermal_soc_slider
 processor_thermal_wt_hint
 processor_thermal_wt_req
-property_entry_test
 prp_dup_discard_test
 ps883x
 psample
@@ -4128,6 +4152,8 @@ qla4xxx
 qlcnic
 qm1d1b0004
 qm1d1c0042
+qmc5883l
+qmc6308
 qmi_helpers
 qmi_wwan
 qnap_mcu
@@ -4636,6 +4662,8 @@ rtw89_8852cu
 rtw89_8922a
 rtw89_8922ae
 rtw89_8922au
+rtw89_8922d
+rtw89_8922de
 rtw89_core
 rtw89_pci
 rtw89_usb
@@ -4675,7 +4703,6 @@ safe_serial
 samsung_galaxybook
 samsung_laptop
 samsung_q10
-sata_inic162x
 sata_mv
 sata_nv
 sata_promise
@@ -4793,6 +4820,7 @@ sfc_falcon
 sfc_siena
 sfp
 sg
+sgm41542_charger
 sha1
 sha1_all
 sha1_kunit
@@ -4997,6 +5025,8 @@ snd_hda_codec_via
 snd_hda_core
 snd_hda_ext_core
 snd_hda_intel
+snd_hda_scodec_aw88399
+snd_hda_scodec_aw88399_i2c
 snd_hda_scodec_component
 snd_hda_scodec_cs35l41
 snd_hda_scodec_cs35l41_i2c
@@ -5095,6 +5125,9 @@ snd_soc_adau1761
 snd_soc_adau1761_i2c
 snd_soc_adau1761_spi
 snd_soc_adau17x1
+snd_soc_adau1977
+snd_soc_adau1977_i2c
+snd_soc_adau1977_spi
 snd_soc_adau7002
 snd_soc_adau7118
 snd_soc_adau7118_hw
@@ -5283,6 +5316,7 @@ snd_soc_rt715
 snd_soc_rt715_sdca
 snd_soc_rt721_sdca
 snd_soc_rt722_sdca
+snd_soc_rt766_sdca
 snd_soc_rt9123
 snd_soc_rt9123p
 snd_soc_rt_sdw_common
@@ -5369,6 +5403,7 @@ snd_soc_wm8961
 snd_soc_wm_adsp
 snd_soc_wsa883x
 snd_soc_wsa884x
+snd_soc_wsa885x
 snd_soc_zl38060
 snd_sof
 snd_sof_acpi
@@ -5377,6 +5412,7 @@ snd_sof_acpi_intel_byt
 snd_sof_amd_acp
 snd_sof_amd_acp63
 snd_sof_amd_acp70
+snd_sof_amd_acp7x
 snd_sof_amd_rembrandt
 snd_sof_amd_renoir
 snd_sof_amd_vangogh
@@ -5612,6 +5648,7 @@ sx9360
 sx_common
 sy7636a_hwmon
 sy7636a_regulator
+sy7758
 sym53c8xx
 symbolserial
 synaptics_i2c
@@ -5747,6 +5784,7 @@ ti_adc128s052
 ti_ads1015
 ti_ads1018
 ti_ads1100
+ti_ads112c14
 ti_ads131e08
 ti_ads131m02
 ti_ads7138
@@ -6108,6 +6146,7 @@ vsock_loopback
 vsockmon
 vsxxxaa
 vt1211
+vt7505
 vt8231
 vub300
 vx855
