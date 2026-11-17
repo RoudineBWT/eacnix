@@ -3,15 +3,14 @@ name: "⬆️ Bump Bazzite pins"
 # Weekly: compare the kernel of Bazzite's current stable images with the pins
 # in pkgs/bazzite/sources.nix. When a flavour moved, rewrite its pins (kernel,
 # akmods layers, kmod-nvidia version and, if that changed, NVIDIA's userspace
-# hashes), refresh the vendored kernel config, run the flake checks and, if
-# they pass, commit straight to the default branch. If they fail, a draft pull
-# request is opened instead. A flavour that can't be bumped automatically (akmods
+# hashes), refresh the vendored kernel config, run the flake checks and commit
+# the bump straight to the default branch. If the checks failed, the commit says
+# so and an issue is opened. A flavour that can't be bumped automatically (akmods
 # images not published yet, a hash that can't be computed, a new kernel major)
 # becomes an issue with what's left to do.
 #
-# Needs: Settings → Actions → General → "Allow GitHub Actions to create and
-# approve pull requests" (for the failure fallback), and no branch protection
-# blocking pushes from github-actions on the default branch.
+# Needs: no branch protection blocking pushes from github-actions on the
+# default branch.
 
 on:
   schedule:
@@ -20,7 +19,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
   issues: write
 
 concurrency:
@@ -56,26 +54,15 @@ jobs:
             gh issue create --title "$TITLE" --label bump --body-file bazzite-todo.md
           fi
 
-      - name: Skip if that bump is already proposed
-        id: dup
-        if: steps.bump.outputs.changed == 'true'
-        run: |
-          if git ls-remote --exit-code --heads origin "${{ steps.bump.outputs.branch }}" >/dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Branch ${{ steps.bump.outputs.branch }} already exists, nothing to do."
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Free disk space
-        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        if: steps.bump.outputs.changed == 'true'
         run: |
           sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/share/boost
           sudo docker image prune -af || true
           df -h /
 
       - name: Refresh the vendored kernel config
-        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        if: steps.bump.outputs.changed == 'true'
         run: |
           nix build -L .#bazzite-kernel.vendored -o vendored
           cp -L --no-preserve=mode vendored/* pkgs/bazzite/ogc/
@@ -85,7 +72,7 @@ jobs:
           rm vendored
 
       - name: Enable KVM (for the VM tests)
-        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        if: steps.bump.outputs.changed == 'true'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
@@ -93,15 +80,13 @@ jobs:
 
       - name: Flake checks
         id: check
-        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+        if: steps.bump.outputs.changed == 'true'
         continue-on-error: true
         run: nix flake check -L
 
-      - name: Commit the bump
-        if: steps.bump.outputs.changed == 'true' && steps.dup.outputs.exists == 'false'
+      - name: Commit the bump to the default branch
+        if: steps.bump.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ steps.bump.outputs.branch }}
           TITLE: ${{ steps.bump.outputs.title }}
           CHECK: ${{ steps.check.outcome }}
           BASE: ${{ github.event.repository.default_branch }}
@@ -109,16 +94,21 @@ jobs:
           git config user.name "eacnix pins bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A pkgs/bazzite
-          if [ "$CHECK" = "success" ]; then
-            # Checks passed: commit straight to the default branch.
-            git commit -m "$TITLE" -m "$(cat bump-summary.md)"
-            git pull --rebase origin "$BASE"
-            git push origin "HEAD:$BASE"
-          else
-            # Checks failed: don't break the default branch, open a draft PR instead.
-            git checkout -b "$BRANCH"
-            git commit -m "$TITLE"
-            git push origin "$BRANCH"
-            printf '\n**`nix flake check` failed** (see the workflow run). Opened as a draft.\n' >> bump-summary.md
-            gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body-file bump-summary.md --draft
+          if [ "$CHECK" != "success" ]; then
+            printf '\n**`nix flake check` failed** when this bump was made, see the workflow run.\n' >> bump-summary.md
           fi
+          git commit -m "$TITLE" -m "$(cat bump-summary.md)"
+          git pull --rebase origin "$BASE"
+          git push origin "HEAD:$BASE"
+
+      - name: Open an issue when the checks failed
+        if: steps.bump.outputs.changed == 'true' && steps.check.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.bump.outputs.title }}
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh label create bump --color FBCA04 --description "Vendor kernel bump needed" 2>/dev/null || true
+          gh issue create --label bump \
+            --title "Checks failed after bump: $TITLE" \
+            --body "The bump was committed to the default branch, but \`nix flake check\` failed: $run_url. Fix or revert the commit."
