@@ -26,7 +26,11 @@ let
     version = "${nvidia.version}-${kernel.version}";
     src = fetchurl nvidia.akmods;
     sourceRoot = ".";
-    unpackCmd = "tar -xzf $curSrc rpms/kmods/${nvidia.kmod}";
+    # The layer holds a single kmod-nvidia RPM. Its file name carries the RPM's
+    # own release (`-1.fc45`, `-2.fc45`, ...), which the layer's tag doesn't
+    # tell, so it's matched by pattern instead of rebuilt from the pins. The
+    # kernel it was built for is checked below (`lib/modules/<modDirVersion>`).
+    unpackCmd = "tar -xzf $curSrc --wildcards 'rpms/kmods/kmod-nvidia-*.rpm'";
     nativeBuildInputs = [
       rpm
       cpio
@@ -34,7 +38,12 @@ let
       xz
     ];
     installPhase = ''
-      rpm2cpio rpms/kmods/${nvidia.kmod} | cpio -idm --quiet
+      set -- rpms/kmods/kmod-nvidia-*.rpm
+      if [ "$#" -ne 1 ]; then
+        echo "expected one kmod-nvidia rpm in the akmods layer, found: $*" >&2
+        exit 1
+      fi
+      rpm2cpio "$1" | cpio -idm --quiet
       d=lib/modules/${kernel.modDirVersion}
       # The userspace below must match the modules exactly.
       for m in $(find $d -name 'nvidia*.ko*'); do

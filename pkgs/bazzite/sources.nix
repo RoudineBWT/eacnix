@@ -24,11 +24,6 @@ let
     ];
     sha256 = digest;
   };
-
-  # `fc45` out of a kernel release like "ogc1.1.fc45". The akmods tags and the
-  # kmod-nvidia RPM names follow the kernel's own Fedora (`fc45`), which can be
-  # newer than the Bazzite image's `release` below.
-  fc = kernelRelease: builtins.head (builtins.match ".*\\.(fc[0-9]+)" kernelRelease);
 in
 {
   release = "44";
@@ -59,7 +54,6 @@ in
       # ghcr.io/ublue-os/akmods-nvidia-open:ogc-<fcNN>-${kernel.modDirVersion}
       # @sha256:c94ae195e720e52ccab0e9e1c1261081613b621d64d58018f6d03c0a0e2ad1c1
       akmods = layer "akmods-nvidia-open" "c852c930de5be297cd8d84a469e6108bb09d23b1e2b84cf0abfeb4750e65dc09";
-      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.${fc kernel.release}.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' new_feature).
       userspace = {
         inherit version;
@@ -96,7 +90,6 @@ in
       # ghcr.io/ublue-os/akmods-nvidia-lts:ogc-lts-<fcNN>-${kernel.modDirVersion}
       # @sha256:5503b8fa2b2f3496b1803a17d826ba6b345e387911f31e576ba4fc9b9f4af3f3
       akmods = layer "akmods-nvidia-lts" "fdad5c96eeb78197359057a8fbc94d488541f60826e9dfd4223d4bbccac28ece";
-      kmod = "kmod-nvidia-${kernel.modDirVersion}-${version}-1.${fc kernel.release}.x86_64.rpm";
       # nixpkgs' nvidiaPackages.mkDriver arguments (nixpkgs' legacy_580).
       userspace = {
         inherit version;
