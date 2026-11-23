@@ -4452,7 +4452,6 @@ safe_serial
 samsung_galaxybook
 samsung_laptop
 samsung_q10
-sata_inic162x
 sata_mv
 sata_nv
 sata_promise
