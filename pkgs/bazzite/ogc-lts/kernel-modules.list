@@ -2646,7 +2646,7 @@ lenovo_ec_sensors
 lenovo_se10_wdt
 lenovo_se30_wdt
 lenovo_wmi_camera
-lenovo_wmi_capdata01
+lenovo_wmi_capdata
 lenovo_wmi_events
 lenovo_wmi_gamezone
 lenovo_wmi_helpers
@@ -4517,7 +4517,6 @@ safe_serial
 samsung_galaxybook
 samsung_laptop
 samsung_q10
-sata_inic162x
 sata_mv
 sata_nv
 sata_promise
